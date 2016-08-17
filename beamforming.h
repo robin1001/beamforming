@@ -131,4 +131,20 @@ void delay_and_sum(const float *data, int num_channel, int num_sample,
     }
 }
 
+// TODO MVDR beamforming
+// MVDR (minimum variance distortionless response filter), matlab code 
+//
+// function [w,variance]=mvdr_coeff(R,s)
+// % Returns the coefficients for the MVDR (minimum variance distortionless 
+// % response filter) for the signature vector s and correlation matrix R
+//
+// Rinv=inv(R);
+// w=(Rinv*s)/(s'*Rinv*s);
+
+void mvdr(const float *data, int num_channel, int num_sample,
+          int *tdoa, float *out) {
+
+}
+
+
 #endif
