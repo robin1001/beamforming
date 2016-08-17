@@ -29,7 +29,9 @@ int main(int argc, char *argv[]) {
             wav_reader.NumChannel(),
             wav_reader.BitsPerSample());
 
-    int tdoa_window = 0.250 * wav_reader.SampleRate(); // 250ms
+    int tdoa_window = 0.25 * wav_reader.SampleRate(); // 250ms
+    int beam_window = 0.25 * wav_reader.SampleRate();
+    assert(beam_window <= tdoa_window);
     int margin = 0.010 * wav_reader.SampleRate(); // margin 10ms
 
     int num_channel = wav_reader.NumChannel();
@@ -38,27 +40,38 @@ int main(int argc, char *argv[]) {
     float *out_pcm = (float *)calloc(sizeof(float), num_sample);
     int *tdoa = (int *)calloc(sizeof(int), num_channel);
 
-    for (int i = 0; i < num_sample; i += tdoa_window) {
-        int window_size = (i + tdoa_window > num_sample) ? 
+    for (int i = 0; i < num_sample; i += beam_window) {
+        int tdoa_window_size = (i + tdoa_window > num_sample) ? 
                             num_sample - i : tdoa_window;
+        int beam_window_size = (i + beam_window > num_sample) ? 
+                            num_sample - i : beam_window;
+        assert(beam_window_size <= tdoa_window_size);
         // rearrange channel data
-        float *data = (float *)calloc(sizeof(float), window_size * num_channel);
+        float *data = (float *)calloc(sizeof(float), 
+                                      tdoa_window_size * num_channel);
+        float *beam_data = (float *)calloc(sizeof(float), 
+                                      beam_window_size * num_channel);
+
         for (int j = 0; j < num_channel; j++) {
-            for (int k = 0; k < window_size; k++) {
-                data[j * window_size + k] = pcm[(i + k) * num_channel + j];
+            for (int k = 0; k < tdoa_window_size; k++) {
+                data[j * tdoa_window_size + k] = pcm[(i + k) * num_channel + j];
+            }
+            for (int k = 0; k < beam_window_size; k++) {
+                beam_data[j * beam_window_size + k] = pcm[(i + k) * num_channel + j];
             }
         }
         // calc delay
-        int tao = margin < window_size / 2 ? margin : window_size / 2;
-        calc_tdoa(data, num_channel, window_size, 0, tao, tdoa);
+        int tao = margin < tdoa_window_size / 2 ? margin : tdoa_window_size / 2;
+        calc_tdoa(data, num_channel, tdoa_window_size, 0, tao, tdoa);
         for (int j = 0; j < num_channel; j++) {
             printf("%d ", tdoa[j]);
         }
         printf("\n");
 
-        delay_and_sum(data, num_channel, window_size, tdoa, out_pcm + i);
+        delay_and_sum(beam_data, num_channel, beam_window_size, tdoa, out_pcm + i);
 
         free(data);
+        free(beam_data);
     }
 
     // Write outfile

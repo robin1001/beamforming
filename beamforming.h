@@ -36,6 +36,7 @@ void calc_tdoa(const float *data, int num_channel, int num_sample,
                int ref, int margin, int *tdoa) {
     assert(data != NULL);
     assert(ref >= 0 && ref < num_channel);
+    assert(margin <= num_sample / 2);
     // constrait the number data points to 2^n
     int num_points = nearest_power_of_two(num_sample);
     int half = num_points / 2;
@@ -143,7 +144,13 @@ void delay_and_sum(const float *data, int num_channel, int num_sample,
 
 void mvdr(const float *data, int num_channel, int num_sample,
           int *tdoa, float *out) {
-
+    // calc s acorrding tdoa 
+    
+    // calc covariance matrix, and inverse
+    
+    // calc w
+    
+    // sum
 }
 
 
