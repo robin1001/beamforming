@@ -20,25 +20,25 @@
 #define M_2PI 6.283185307179586476925286766559005                                           
 #endif  
 
-static int nearest_power_of_two(int n) {
+static int UpperPowerOfTwo(int n) {
     return (int)pow(2, ceil(log(n) / log(2))); 
 }
 
 // Calc reference channel
-void calc_reference_channel();
+void CalcReferenceChannel();
 
 // Calc tdoa(time delay of arrival
 // using GCC-PHAT(Gerneral Cross Correlation - Phase Transform)
 // @params data : in format channel0, channel1
 // @params ref : reference_channel
 // @params margin: margin [-tao, tao]
-void calc_tdoa(const float *data, int num_channel, int num_sample, 
+void GccPhatTdoa(const float *data, int num_channel, int num_sample, 
                int ref, int margin, int *tdoa) {
     assert(data != NULL);
     assert(ref >= 0 && ref < num_channel);
     assert(margin <= num_sample / 2);
     // constrait the number data points to 2^n
-    int num_points = nearest_power_of_two(num_sample);
+    int num_points = UpperPowerOfTwo(num_sample);
     int half = num_points / 2;
     float *win_data = (float *)calloc(sizeof(float), num_points * num_channel);
     float *hamming_window = (float *)calloc(sizeof(float), num_sample);
@@ -116,7 +116,7 @@ void calc_tdoa(const float *data, int num_channel, int num_sample,
 
 // Delay & Sum
 // @params data : in format channel0, channel1
-void delay_and_sum(const float *data, int num_channel, int num_sample,
+void DelayAndSum(const float *data, int num_channel, int num_sample,
                    int *tdoa, float *out) {
     for (int i = 0; i < num_sample; i++) {
         int count = 0;
@@ -142,7 +142,7 @@ void delay_and_sum(const float *data, int num_channel, int num_sample,
 // Rinv=inv(R);
 // w=(Rinv*s)/(s'*Rinv*s);
 
-void mvdr(const float *data, int num_channel, int num_sample,
+void Mvdr(const float *data, int num_channel, int num_sample,
           int *tdoa, float *out) {
     // calc s acorrding tdoa 
     

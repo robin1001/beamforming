@@ -62,13 +62,13 @@ int main(int argc, char *argv[]) {
         }
         // calc delay
         int tao = margin < tdoa_window_size / 2 ? margin : tdoa_window_size / 2;
-        calc_tdoa(data, num_channel, tdoa_window_size, 0, tao, tdoa);
+        GccPhatTdoa(data, num_channel, tdoa_window_size, 0, tao, tdoa);
         for (int j = 0; j < num_channel; j++) {
             printf("%d ", tdoa[j]);
         }
         printf("\n");
 
-        delay_and_sum(beam_data, num_channel, beam_window_size, tdoa, out_pcm + i);
+        DelayAndSum(beam_data, num_channel, beam_window_size, tdoa, out_pcm + i);
 
         free(data);
         free(beam_data);
