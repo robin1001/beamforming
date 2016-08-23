@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     int tdoa_window = 0.25 * wav_reader.SampleRate(); // 250ms
     int beam_window = 0.25 * wav_reader.SampleRate();
     assert(beam_window <= tdoa_window);
-    int margin = 0.010 * wav_reader.SampleRate(); // margin 10ms
+    int margin = 0.0001 * wav_reader.SampleRate(); // margin 16
 
     int num_channel = wav_reader.NumChannel();
     int num_sample = wav_reader.NumSample();
