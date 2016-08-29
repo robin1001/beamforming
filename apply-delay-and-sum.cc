@@ -5,13 +5,14 @@
 #include <stdio.h>
 
 #include "wav.h"
-#include "beamforming.h"
+#include "tdoa.h"
+#include "ds.h"
 
 
 int main(int argc, char *argv[]) {
 
     const char *usage = "Do delay and sum beamforming\n"
-                        "Usage: delay-and-sum multi_channel_file output_file\n";
+                        "Usage: apply-delay-and-sum multi_channel_file output_file\n";
     if (argc != 3) {
         printf(usage);
         exit(-1);
@@ -21,13 +22,13 @@ int main(int argc, char *argv[]) {
     WavReader wav_reader(argv[1]);
 
     printf("input file %s info: \n"
-            "sample_rate %d \n"
-            "channels %d \n"
-            "bits_per_sample_ %d \n",
-            argv[1],
-            wav_reader.SampleRate(), 
-            wav_reader.NumChannel(),
-            wav_reader.BitsPerSample());
+           "sample_rate %d \n"
+           "channels %d \n"
+           "bits_per_sample_ %d \n",
+           argv[1],
+           wav_reader.SampleRate(), 
+           wav_reader.NumChannel(),
+           wav_reader.BitsPerSample());
 
     int tdoa_window = 0.25 * wav_reader.SampleRate(); // 250ms
     int beam_window = 0.25 * wav_reader.SampleRate();

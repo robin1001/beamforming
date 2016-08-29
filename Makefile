@@ -1,14 +1,15 @@
 CXX = g++
 CXXFLAGS = -g
 
-BINS = wav-test fft-test beamforming-test delay-and-sum
+BINS = wav-test fft-test tdoa-test apply-delay-and-sum vad-test
 
 all: $(BINS)
 
 wav-test: wav.h
 fft-test: fft.h
-beamforming-test: beamforming.h data.h
-delay-and-sum: beamforming.h fft.h wav.h
+tdoa-test: ds.h tdoa.h utils.h fft.h data.h
+apply-delay-and-sum: ds.h tdoa.h utils.h fft.h wav.h
+vad-test: wav.h vad.h
 
 .PHONY: clean
 clean:

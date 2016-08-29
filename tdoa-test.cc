@@ -5,7 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "beamforming.h"
+#include "tdoa.h"
+#include "ds.h"
 #include "data.h"
 
 
