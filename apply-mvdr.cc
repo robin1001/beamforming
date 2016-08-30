@@ -7,6 +7,7 @@
 #include "wav.h"
 #include "tdoa.h"
 #include "mvdr.h"
+#include "vad.h"
 
 int main(int argc, char *argv[]) {
 
@@ -29,55 +30,49 @@ int main(int argc, char *argv[]) {
            wav_reader.NumChannel(),
            wav_reader.BitsPerSample());
 
-    int tdoa_window = 0.25 * wav_reader.SampleRate(); // 250ms
-    int beam_window = 0.25 * wav_reader.SampleRate();
-    assert(beam_window <= tdoa_window);
-    int margin = 0.0001 * wav_reader.SampleRate(); // margin 16
+    int sample_rate = reader.SampleRate();
+    int num_sample = reader.NumSample();
+    float frame_len = 0.025; // 25 ms
+    float frame_shift = 0.01; // 10ms
+    int num_point_per_frame = (int)(frame_len * sample_rate);
+    int num_point_shift = (int)(frame_shift * sample_rate);
 
-    int num_channel = wav_reader.NumChannel();
-    int num_sample = wav_reader.NumSample();
     const float *pcm = wav_reader.Data();
     float *out_pcm = (float *)calloc(sizeof(float), num_sample);
     int *tdoa = (int *)calloc(sizeof(int), num_channel);
+   
+    Vad vad;
+    VadInit(&vad, 1.5e7, 3, 10);
 
-    //for (int i = 0; i < num_sample; i += beam_window) {
-    //    int tdoa_window_size = (i + tdoa_window > num_sample) ? 
-    //                        num_sample - i : tdoa_window;
-    //    int beam_window_size = (i + beam_window > num_sample) ? 
-    //                        num_sample - i : beam_window;
-    //    assert(beam_window_size <= tdoa_window_size);
-    //    // rearrange channel data
-    //    float *data = (float *)calloc(sizeof(float), 
-    //                                  tdoa_window_size * num_channel);
-    //    float *beam_data = (float *)calloc(sizeof(float), 
-    //                                  beam_window_size * num_channel);
+    for (int i = 0; i < num_sample; i += num_point_shift) {
+        int frame_size = (i + num_point_per_frame > num_sample) ? 
+                            num_sample - i : num_point_per_frame;
+        // rearrange channel data
+        float *data = (float *)calloc(sizeof(float), frame_size * num_channel);
+        for (int j = 0; j < num_channel; j++) {
+            for (int k = 0; k < frame_size; k++) {
+                data[j * frame_size + k] = pcm[(i + k) * num_channel + j];
+            }
+        }
+        // calc delay
+        //GccPhatTdoa(data, num_channel, frame_size, 0, 16, tdoa);
+        //for (int j = 0; j < num_channel; j++) {
+        //    printf("%d ", tdoa[j]);
+        //}
+        //printf("\n");
+        
+        // do vad (is noise or not)
+        int is_speech = IsSpeech(&vad, data, frame_size); 
 
-    //    for (int j = 0; j < num_channel; j++) {
-    //        for (int k = 0; k < tdoa_window_size; k++) {
-    //            data[j * tdoa_window_size + k] = pcm[(i + k) * num_channel + j];
-    //        }
-    //        for (int k = 0; k < beam_window_size; k++) {
-    //            beam_data[j * beam_window_size + k] = pcm[(i + k) * num_channel + j];
-    //        }
-    //    }
-    //    // calc delay
-    //    int tao = margin < tdoa_window_size / 2 ? margin : tdoa_window_size / 2;
-    //    GccPhatTdoa(data, num_channel, tdoa_window_size, 0, tao, tdoa);
-    //    for (int j = 0; j < num_channel; j++) {
-    //        printf("%d ", tdoa[j]);
-    //    }
-    //    printf("\n");
+        // do MVDR
+        
+        free(data);
+    }
 
-    //    DelayAndSum(beam_data, num_channel, beam_window_size, tdoa, out_pcm + i);
-
-    //    free(data);
-    //    free(beam_data);
-    //}
-
-    //// Write outfile
-    //WavWriter wav_writer(out_pcm, num_sample, 1,
-    //                     wav_reader.SampleRate(), wav_reader.BitsPerSample());
-    //wav_writer.Write(argv[2]);
+    // Write outfile
+    WavWriter wav_writer(out_pcm, num_sample, 1, sample_rate, 
+                         wav_reader.BitsPerSample());
+    wav_writer.Write(argv[2]);
 
     free(out_pcm);
     free(tdoa);

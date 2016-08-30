@@ -32,7 +32,7 @@ void GccPhatTdoa(const float *data, int num_channel, int num_sample,
 
     // copy data and apply window
     for (int i = 0; i < num_channel; i++) {
-        memcpy(win_data + i * num_sample, data + i * num_sample, 
+        memcpy(win_data + i * num_points, data + i * num_sample, 
                sizeof(float) * num_sample);
         Hamming(win_data, num_sample);
     }
