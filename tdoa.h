@@ -12,8 +12,8 @@
 #include "utils.h"
 #include "fft.h"
 
-// Calc reference channel
-// void CalcReferenceChannel();
+// Reference:
+// 1. Microphone Array Signal Processing(chappter 9: Direction-of-Arrival and Time-Difference-of-Arrival Estimation)
 
 // Calc tdoa(time delay of arrival
 // using GCC-PHAT(Gerneral Cross Correlation - Phase Transform)

@@ -138,7 +138,7 @@ int main() {
     //TestMatrixMul();
     //TestMatrixInverse();
     //TestComplexMatrixAdd();
-    TestComplexMatrixMul();
+    //TestComplexMatrixMul();
     //TestComplexMatrixInverse();
     return 0;
 }

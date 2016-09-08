@@ -19,25 +19,26 @@ int main(int argc, char *argv[]) {
     }
 
 
-    WavReader wav_reader(argv[1]);
+    WavReader reader(argv[1]);
 
     printf("input file %s info: \n"
            "sample_rate %d \n"
            "channels %d \n"
            "bits_per_sample_ %d \n",
            argv[1],
-           wav_reader.SampleRate(), 
-           wav_reader.NumChannel(),
-           wav_reader.BitsPerSample());
+           reader.SampleRate(), 
+           reader.NumChannel(),
+           reader.BitsPerSample());
 
     int sample_rate = reader.SampleRate();
     int num_sample = reader.NumSample();
+    int num_channel = reader.NumChannel();
     float frame_len = 0.025; // 25 ms
     float frame_shift = 0.01; // 10ms
     int num_point_per_frame = (int)(frame_len * sample_rate);
     int num_point_shift = (int)(frame_shift * sample_rate);
 
-    const float *pcm = wav_reader.Data();
+    const float *pcm = reader.Data();
     float *out_pcm = (float *)calloc(sizeof(float), num_sample);
     int *tdoa = (int *)calloc(sizeof(int), num_channel);
    
@@ -71,7 +72,7 @@ int main(int argc, char *argv[]) {
 
     // Write outfile
     WavWriter wav_writer(out_pcm, num_sample, 1, sample_rate, 
-                         wav_reader.BitsPerSample());
+                         reader.BitsPerSample());
     wav_writer.Write(argv[2]);
 
     free(out_pcm);

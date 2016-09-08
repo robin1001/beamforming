@@ -13,19 +13,17 @@
 #include <string.h>
 
 // Here we just implement serveral simple matrix function
-// used in MVDR
-
 
 class Matrix {
 public:
     Matrix(int r, int c): num_row_(r), num_col_(c) {
-        data_ = (float *)calloc(sizeof(float), r * c); 
+        data_ = new float[r * c](); 
     }
 
     Matrix(): num_row_(0), num_col_(0), data_(NULL) {}
 
     ~Matrix() {
-        if (data_ != NULL) free(data_);
+        if (data_ != NULL) delete [] data_;
     }
 
     int NumRow() const { return num_row_; }
@@ -36,19 +34,23 @@ public:
     }
     
     float operator () (int r, int c) const {
-        return data_[r * num_col_ + c];
+        assert(r < num_row_);
+        assert(c < num_col_);
+        return *(data_ + r * num_col_ + c);
     }
 
     float & operator () (int r, int c) {
-        return data_[r * num_col_ + c];
+        assert(r < num_row_);
+        assert(c < num_col_);
+        return *(data_ + r * num_col_ + c);
     }
 
     void Resize(int r, int c) {
         if (r != num_row_ || c != num_col_) {
-            if (data_ != NULL) free(data_);
+            if (data_ != NULL) delete [] data_;
             num_row_ = r;
             num_col_ = c;
-            data_ = (float *)calloc(sizeof(float), r * c);
+            data_ = new float[r * c]();
         }
         else {
             memset(data_, 0, r * c * sizeof(float));
@@ -73,6 +75,29 @@ public:
         for (int i = 0; i < num_row_; i++) {
             for (int j = 0; j < num_col_; j++) {
                 (*this)(i, j) = alpha * mat(i, j) + beta * (*this)(i, j); 
+            }
+        }
+    }
+    
+    // Sum all element
+    float Sum() {
+        float sum = 0.0;
+        for (int i = 0; i < num_row_; i++) {
+            for (int j = 0; j < num_col_; j++) {
+                sum += (*this)(i, j);
+            }
+        }
+        return sum;
+    }
+
+    // *this = mat1 .* mat2
+    void MulElement(const Matrix &mat1, const Matrix &mat2) {
+        assert(mat1.NumRow() == mat2.NumRow());
+        assert(mat1.NumCol() == mat2.NumCol());
+        this->Resize(mat1.NumRow(), mat1.NumCol());
+        for (int i = 0; i < num_row_; i++) {
+            for (int j = 0; j < num_col_; j++) {
+                (*this)(i, j) = mat1(i, j) * mat2(i, j);
             }
         }
     }
@@ -150,6 +175,7 @@ public:
 private:
     int num_row_, num_col_;
     float *data_;
+    // Disallow assign and copy
     Matrix(const Matrix &mat);
     Matrix & operator = (const Matrix &mat);
 };
@@ -190,7 +216,7 @@ public:
 
     void Resize(int r, int c) {
         if (r != num_row_ || c != num_col_) {
-            if (data_ != NULL) free(data_);
+            if (data_ != NULL) delete [] data_;
             num_row_ = r;
             num_col_ = c;
             data_ = new Complex[r * c]();
@@ -292,6 +318,9 @@ public:
 private:
     int num_row_, num_col_;
     Complex *data_;
+    // Disallow assign and copy
+    ComplexMatrix(const ComplexMatrix &mat);
+    ComplexMatrix & operator = (const ComplexMatrix &mat);
 };
 
 #endif
