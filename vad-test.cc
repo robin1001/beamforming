@@ -48,7 +48,8 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < num_sample; i += num_point_shift) {
         // last frame 
         if (i + num_point_per_frame > num_sample) break;
-        printf("%f %d \n", float(i) / sample_rate, IsSpeech(&vad, data+i, num_point_per_frame));
+        int tags = IsSpeech(&vad, data+i, num_point_per_frame) ? 1 : 0;
+        printf("%f %d \n", float(i) / sample_rate, tags);
     }
 
     free(data);

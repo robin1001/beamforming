@@ -136,7 +136,7 @@ void TestComplexMatrixInverse() {
 int main() {
     //TestMatrixAdd(); 
     //TestMatrixMul();
-    //TestMatrixInverse();
+    TestMatrixInverse();
     //TestComplexMatrixAdd();
     //TestComplexMatrixMul();
     //TestComplexMatrixInverse();

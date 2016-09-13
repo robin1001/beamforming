@@ -40,33 +40,33 @@ int main(int argc, char *argv[]) {
 
     const float *pcm = reader.Data();
     float *out_pcm = (float *)calloc(sizeof(float), num_sample);
-    int *tdoa = (int *)calloc(sizeof(int), num_channel);
+    float *tdoa = (float *)calloc(sizeof(float), num_channel);
    
     Vad vad;
     VadInit(&vad, 1.5e7, 3, 10);
+    Mvdr mvdr(sample_rate, 512, num_channel);
 
     for (int i = 0; i < num_sample; i += num_point_shift) {
-        int frame_size = (i + num_point_per_frame > num_sample) ? 
-                            num_sample - i : num_point_per_frame;
+        // last frame
+        if (i + num_point_per_frame > num_sample) break; 
         // rearrange channel data
-        float *data = (float *)calloc(sizeof(float), frame_size * num_channel);
+        float *data = (float *)calloc(sizeof(float), 
+                                      num_point_per_frame * num_channel);
         for (int j = 0; j < num_channel; j++) {
-            for (int k = 0; k < frame_size; k++) {
-                data[j * frame_size + k] = pcm[(i + k) * num_channel + j];
+            for (int k = 0; k < num_point_per_frame; k++) {
+                data[j * num_point_per_frame + k] = pcm[(i + k) * num_channel + j];
             }
         }
-        // calc delay
-        //GccPhatTdoa(data, num_channel, frame_size, 0, 16, tdoa);
-        //for (int j = 0; j < num_channel; j++) {
-        //    printf("%d ", tdoa[j]);
-        //}
-        //printf("\n");
+        // Because gccphat based time-delay is not very precise
+        // so here we time-delay is not supported here
+        // we suppose the signal arrive sensors at the same time(90)
         
         // do vad (is noise or not)
-        int is_speech = IsSpeech(&vad, data, frame_size); 
+        bool is_speech = IsSpeech(&vad, data, num_point_per_frame); 
 
         // do MVDR
-        
+        mvdr.DoBeamformimg(data, num_point_per_frame, !is_speech, 
+                           tdoa, out_pcm + i);
         free(data);
     }
 
@@ -80,3 +80,6 @@ int main(int argc, char *argv[]) {
     
     return 0;
 }
+
+
+

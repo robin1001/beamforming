@@ -35,7 +35,7 @@ void VadInit(Vad *vad, float energy_thresh, int speech_thresh, int sil_thresh) {
 }
 
 // return 1 if current frame is speech
-int IsSpeech(Vad *vad, float *data, int num_point) {
+bool IsSpeech(Vad *vad, float *data, int num_point) {
     float energy = 0.0; 
     bool is_voice = false;
     for (int i = 0; i < num_point; i++) {
@@ -69,8 +69,8 @@ int IsSpeech(Vad *vad, float *data, int num_point) {
             assert(0);
     }
 
-    if (vad->state == kSpeech) return 1;
-    else return 0;
+    if (vad->state == kSpeech) return true;
+    else return false;
 }
 
 #endif

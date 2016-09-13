@@ -220,6 +220,8 @@ public:
             num_row_ = r;
             num_col_ = c;
             data_ = new Complex[r * c]();
+        } else {
+            memset(data_, 0, r * c * sizeof(Complex));
         }
     }
     
@@ -312,6 +314,36 @@ public:
                 printf("%f+%fi\t", ((*this)(i, j)).real, ((*this)(i, j)).img);
             }
             printf("\n");
+        }
+    }
+
+    // Trace sum of diag elem
+    float Trace() {
+        assert(num_row_ == num_col_);
+        float sum = 0.0;
+        for (int i = 0; i < num_row_; i++) {
+            sum += (*this)(i, i).real;
+        }
+        return sum;
+    }
+
+    // *this = alpha * (*this)
+    void Scale(float alpha) {
+        for (int i = 0; i < num_row_; i++) {
+            for (int j = 0; j < num_col_; j++) {
+                (*this)(i, j).real *= alpha; 
+                (*this)(i, j).img *= alpha; 
+            }
+        }
+    }
+
+    void ApplyDiagCeil(float val) {
+        assert(num_row_ == num_col_);
+        for (int i = 0; i < num_row_; i++) {
+            (*this)(i, i).real += val;
+            //if (fabs((*this)(i, i).real < val)) {
+            //    (*this)(i, i).real = val;
+            //}
         }
     }
 
