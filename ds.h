@@ -11,7 +11,7 @@
 // Delay & Sum
 // @params data : in format channel0, channel1
 void DelayAndSum(const float *data, int num_channel, int num_sample,
-                   int *tdoa, float *out) {
+                 int *tdoa, float *out) {
     for (int i = 0; i < num_sample; i++) {
         int count = 0;
         float sum = 0.0;

@@ -56,7 +56,7 @@ public:
     }
     
     // @params is_speech: 0 represent none speech otherwise speech
-    void DoBeamformimg(const float *data, int num_sample, int is_noise,
+    void DoBeamformimg(const float *data, int num_sample, bool is_noise,
             float *tdoa, float *out) {
         assert(num_sample <= fft_point_);
         frame_count_++;
