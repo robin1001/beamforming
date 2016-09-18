@@ -8,24 +8,47 @@
 #include "tdoa.h"
 #include "mvdr.h"
 #include "vad.h"
+#include "parse-option.h"
 
 int main(int argc, char *argv[]) {
 
     const char *usage = "Do MVDR beamforming\n"
                         "Usage: apply-mvdr multi_channel_file output_file\n";
-    if (argc != 3) {
-        printf(usage);
-        exit(-1);
+    ParseOptions po(usage);
+
+    float frame_len = 0.025; // 25 ms
+    po.Register("frame-len", &frame_len, "frame length for mvdr");
+    float frame_shift = 0.01; // 10ms
+    po.Register("frame-shift", &frame_shift, "frame shift for mvdr");
+    int fft_point = 512;
+    po.Register("fft-point", &fft_point, 
+                "num fft point for spectrum calculation, must be 2^n"
+                "and must greater than frame_len * sample_rate");
+    float energy_thresh = 1.5e-7;
+    po.Register("energy-thresh", &energy_thresh, 
+                "energy threshold for energy based vad");
+    int sil_to_speech_trigger = 3;
+    po.Register("sil-to-speech-trigger", &sil_to_speech_trigger,
+                "num frames for silence to speech trigger");
+    int speech_to_sil_trigger = 10;
+    po.Register("speech-to-sil-trigger", &speech_to_sil_trigger,
+                "num frames for speech to silence trigger");
+    po.Read(argc, argv);
+
+    if (po.NumArgs() != 2) {
+        po.PrintUsage();
+        exit(1);
     }
+    std::string input_file = po.GetArg(1),
+                output_file = po.GetArg(2);
 
-
-    WavReader reader(argv[1]);
+    WavReader reader(input_file.c_str());
 
     printf("input file %s info: \n"
            "sample_rate %d \n"
            "channels %d \n"
            "bits_per_sample_ %d \n",
-           argv[1],
+           input_file.c_str(),
            reader.SampleRate(), 
            reader.NumChannel(),
            reader.BitsPerSample());
@@ -33,8 +56,6 @@ int main(int argc, char *argv[]) {
     int sample_rate = reader.SampleRate();
     int num_sample = reader.NumSample();
     int num_channel = reader.NumChannel();
-    float frame_len = 0.025; // 25 ms
-    float frame_shift = 0.01; // 10ms
     int num_point_per_frame = (int)(frame_len * sample_rate);
     int num_point_shift = (int)(frame_shift * sample_rate);
 
@@ -43,8 +64,8 @@ int main(int argc, char *argv[]) {
     float *tdoa = (float *)calloc(sizeof(float), num_channel);
    
     Vad vad;
-    VadInit(&vad, 1.5e7, 3, 10);
-    Mvdr mvdr(sample_rate, 512, num_channel);
+    VadInit(&vad, energy_thresh, sil_to_speech_trigger, speech_to_sil_trigger);
+    Mvdr mvdr(sample_rate, fft_point, num_channel);
 
     for (int i = 0; i < num_sample; i += num_point_shift) {
         // last frame
@@ -73,7 +94,7 @@ int main(int argc, char *argv[]) {
     // Write outfile
     WavWriter wav_writer(out_pcm, num_sample, 1, sample_rate, 
                          reader.BitsPerSample());
-    wav_writer.Write(argv[2]);
+    wav_writer.Write(output_file.c_str());
 
     free(out_pcm);
     free(tdoa);

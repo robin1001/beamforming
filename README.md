@@ -10,8 +10,7 @@ implement the classic TDOA estimate algorithms GCC-PHAT.
 apply-delay-and-sum, apply-gsc, apply-mvdr are three bins that accept one multichannel wavfile and output the corresponding single channel beamforming wav file. 
 
 ``` sh
-apply-gsc 4ch.wav 4ch.gsc.wav
-
+sh run.sh
 ```
 
 ## File List 

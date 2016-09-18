@@ -6,24 +6,36 @@
 
 #include "wav.h"
 #include "gsc.h"
+#include "parse-option.h"
 
 int main(int argc, char *argv[]) {
 
     const char *usage = "Do GSC beamforming\n"
                         "Usage: apply-gsc multi_channel_file output_file\n";
-    if (argc != 3) {
-        printf(usage);
-        exit(-1);
+    ParseOptions po(usage);
+    int num_k = 128; // gsc k width
+    po.Register("num-k", &num_k, 
+                "context window size for gsc update");
+    float alpha = 0.01;
+    po.Register("alpha", &alpha,
+                "learn rate for gsc param update");
+
+    po.Read(argc, argv);
+
+    if (po.NumArgs() != 2) {
+        po.PrintUsage();
+        exit(1);
     }
+    std::string input_file = po.GetArg(1),
+                output_file = po.GetArg(2);
 
-
-    WavReader reader(argv[1]);
+    WavReader reader(input_file.c_str());
 
     printf("input file %s info: \n"
            "sample_rate %d \n"
            "channels %d \n"
            "bits_per_sample_ %d \n",
-           argv[1],
+           input_file.c_str(),
            reader.SampleRate(), 
            reader.NumChannel(),
            reader.BitsPerSample());
@@ -32,7 +44,6 @@ int main(int argc, char *argv[]) {
     int num_sample = reader.NumSample();
     int num_channel = reader.NumChannel();
 
-    int num_k = 128; // gsc k width
 
     const float *pcm = reader.Data();
     float *out_pcm = (float *)calloc(sizeof(float), num_sample);
@@ -45,7 +56,7 @@ int main(int argc, char *argv[]) {
         out_pcm[i] /= num_channel;
     }
 
-    Gsc gsc(num_channel, num_k, 0.01);
+    Gsc gsc(num_channel, num_k, alpha);
     float *data = (float *)calloc(sizeof(float), num_k * num_channel);
     // For left points, do GSC beamforming
     for (int i = num_k; i < num_sample; i++) {
@@ -61,7 +72,7 @@ int main(int argc, char *argv[]) {
     // Write outfile
     WavWriter wav_writer(out_pcm, num_sample, 1, sample_rate, 
                          reader.BitsPerSample());
-    wav_writer.Write(argv[2]);
+    wav_writer.Write(output_file.c_str());
 
     free(out_pcm);
     free(data);

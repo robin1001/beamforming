@@ -7,33 +7,44 @@
 #include "wav.h"
 #include "tdoa.h"
 #include "ds.h"
+#include "parse-option.h"
 
 
 int main(int argc, char *argv[]) {
 
     const char *usage = "Do delay and sum beamforming\n"
                         "Usage: apply-delay-and-sum multi_channel_file output_file\n";
-    if (argc != 3) {
-        printf(usage);
-        exit(-1);
+    ParseOptions po(usage);
+
+    int tdoa_window = 4000;
+    po.Register("tdoa-window", &tdoa_window, 
+                "window size for estimated tdoa, in sample point");
+    int beam_window = 4000;
+    po.Register("beam-window", &beam_window, 
+                "window size for delay and sum, less than tdoa-window, in sample point");
+    int margin = 16;
+    po.Register("margin", &margin, 
+                "constraint for tdoa estimation");
+
+    po.Read(argc, argv);
+
+    if (po.NumArgs() != 2) {
+        po.PrintUsage();
+        exit(1);
     }
+    std::string input_file = po.GetArg(1),
+                output_file = po.GetArg(2);
 
-
-    WavReader wav_reader(argv[1]);
+    WavReader wav_reader(input_file.c_str());
 
     printf("input file %s info: \n"
            "sample_rate %d \n"
            "channels %d \n"
            "bits_per_sample_ %d \n",
-           argv[1],
+           input_file.c_str(),
            wav_reader.SampleRate(), 
            wav_reader.NumChannel(),
            wav_reader.BitsPerSample());
-
-    int tdoa_window = 0.25 * wav_reader.SampleRate(); // 250ms
-    int beam_window = 0.25 * wav_reader.SampleRate();
-    assert(beam_window <= tdoa_window);
-    int margin = 0.0001 * wav_reader.SampleRate(); // margin 16
 
     int num_channel = wav_reader.NumChannel();
     int num_sample = wav_reader.NumSample();
@@ -78,7 +89,7 @@ int main(int argc, char *argv[]) {
     // Write outfile
     WavWriter wav_writer(out_pcm, num_sample, 1,
                          wav_reader.SampleRate(), wav_reader.BitsPerSample());
-    wav_writer.Write(argv[2]);
+    wav_writer.Write(output_file.c_str());
 
     free(out_pcm);
     free(tdoa);

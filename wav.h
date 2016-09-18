@@ -37,6 +37,15 @@ public:
         
         WavHeader header;
         fread(&header, 1, sizeof(header), fp);
+        if (header.fmt_size < 16) {
+            printf("WaveData: expect PCM format data to have fmt chunk of at least size 16.\n");
+            exit(1);
+        }
+        else if (header.fmt_size > 16) {
+            int offset = 44 - 8 + header.fmt_size - 16;
+            fseek(fp, offset, SEEK_SET);
+            fread(header.data, 8, sizeof(char), fp);
+        }
         // check "riff" "WAVE" "fmt " "data"
         // only support one sub data chunk
         num_channel_ = header.channels;
